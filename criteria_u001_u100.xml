@@ -1,0 +1,1193 @@
+<?xml version='1.0' encoding='utf-8'?>
+<CRITERIA version="2.0">
+  <!--U-001~U-100 pure rule criteria. internal_id removed; code is the only mapping key.-->
+  <ITEM code="U-001">
+    <NAME>관리자계정 외 su 명령어 제한</NAME>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>su 명령어를 특정 그룹에 속한 사용자만 사용하도록 지정하고, su 파일에 other 권한이 부여되어 있지 않는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>su 명령어를 특정 그룹에 속한 사용자만 사용하도록 지정하지 않거나, su 파일에 other 권한이 부여되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>su_restriction</EVALUATOR>
+    <RULE key="pam_wheel_enabled" operator="equals" expected="true" role="pam_restriction" />
+    <RULE key="su_file" operator="all_mode_other_zero" expected="true" role="su_file_permissions" />
+    <SPECIAL key="su_file_count" operator="equals" expected="0" result="GOOD" reason="시스템에 su 명령어 파일이 존재하지 않아 해당 점검 관점에서 직접 사용 경로가 없음" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>su 사용 제한 또는 su 파일의 other 권한 제한이 확인됨</GOOD_REASON>
+    <BAD_REASON>su 사용 제한이 확인되지 않거나 su 파일에 other 권한이 존재함</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-002">
+    <NAME>계정 잠금 임계값 설정</NAME>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>계정 잠금 임계값이 10 이하의 값으로 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>계정 잠금 임계값이 설정되어 있지 않거나, 10 이하의 값으로 설정되지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>fail_lock_limit</EVALUATOR>
+    <RULE key="effective_deny" operator="between" expected="1,10" />
+    <SPECIAL key="effective_deny" operator="in" expected="NOT_SET,FILE_NOT_FOUND" result="VULNERABLE" reason="계정 잠금 임계값이 설정되어 있지 않음" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>계정 잠금 임계값이 1 이상 10 이하로 설정되어 있음</GOOD_REASON>
+    <BAD_REASON>계정 잠금 임계값이 없거나 0 또는 10을 초과함</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-003">
+    <NAME>Session Timeout 설정</NAME>
+    <GRADE>L</GRADE>
+    <GOOD_STANDARD>Session Timeout이 600초(10분) 이하로 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Session Timeout이 600초(10분) 이하로 설정되지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>session_timeout</EVALUATOR>
+    <RULE key="global_timeout_value" operator="between" expected="1,600" role="global" />
+    <RULE key="user_timeout" operator="all_split_numeric_between" expected="1,600" field_index="2" role="user_override" />
+    <RULE key="csh_autologout" operator="all_split_numeric_between" expected="1,10" field_index="1" role="csh" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>전역 Session Timeout과 사용자/C-shell 관련 설정이 기준 범위 내에 있음</GOOD_REASON>
+    <BAD_REASON>Session Timeout이 없거나 기준을 초과하거나 사용자별 우회 설정이 존재함</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-004">
+    <NAME>비밀번호 관리정책 설정</NAME>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>비밀번호 관리 정책이 전부 적절한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>비밀번호 관리 정책이 미흡한 경우</BAD_STANDARD>
+    <EVALUATOR>password_policy</EVALUATOR>
+    <RULE key="pwquality_module_present" operator="equals" expected="true" />
+    <RULE key="minlen" operator="greater_equal" expected="8" />
+    <RULE key="minclass" operator="greater_equal" expected="3" role="complexity_option_a" />
+    <RULE key="dcredit" operator="less_equal" expected="-1" role="complexity_option_b" />
+    <RULE key="ucredit" operator="less_equal" expected="-1" role="complexity_option_b" />
+    <RULE key="lcredit" operator="less_equal" expected="-1" role="complexity_option_b" />
+    <RULE key="ocredit" operator="less_equal" expected="-1" role="complexity_option_b" />
+    <RULE key="pass_min_days" operator="greater_equal" expected="1" />
+    <RULE key="pass_max_days" operator="less_equal" expected="90" />
+    <RULE key="pwhistory_module_present" operator="equals" expected="true" />
+    <RULE key="pwhistory_remember" operator="greater_equal" expected="4" />
+    <RULE key="pwhistory_enforce_for_root" operator="equals" expected="true" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>패스워드 복잡도, 사용기간, 히스토리 정책이 모두 기준을 충족함</GOOD_REASON>
+    <BAD_REASON>패스워드 복잡도, 사용기간, 히스토리 정책 중 하나 이상이 기준에 미달함</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-005">
+    <NAME>root 계정 원격접속 제한(Telnet, SSH 등 원격접속)</NAME>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>원격 접근 시 root 계정에 대한 직접 접속을 제한한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>원격 접근 시 root 직접 접속을 제한하지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>root_remote_login</EVALUATOR>
+    <RULE key="sshd_running" operator="equals" expected="false" role="service_disabled" />
+    <RULE key="permitrootlogin" operator="equals_ci" expected="no" role="ssh_setting" />
+    <SPECIAL key="permitrootlogin" operator="equals" expected="NOT_SET" result="VULNERABLE" reason="sshd 실제 적용 설정을 확인할 수 없음" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>SSH 서비스를 사용하지 않거나 PermitRootLogin의 실제 적용값이 no임</GOOD_REASON>
+    <BAD_REASON>SSH가 동작 중이며 root 직접 원격접속 제한이 확인되지 않음</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-006">
+    <NAME>불필요한 시스템 계정 Shell 제한 여부</NAME>
+    <GRADE>L</GRADE>
+    <GOOD_STANDARD>불필요한 시스템 계정에 Shell이 부여되어 있지 않는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>불필요한 시스템 계정에 Shell이 부여되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>system_account_shell</EVALUATOR>
+    <RULE key="passwd_file_exists" operator="equals" expected="true" />
+    <RULE key="system_account_shell" operator="all_split_in" field_index="1" expected="/sbin/nologin,/usr/sbin/nologin,/bin/false,/usr/bin/false,/bin/sync,/sbin/shutdown,/sbin/halt" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>점검 대상 시스템 계정에 로그인 가능한 일반 Shell이 부여되어 있지 않음</GOOD_REASON>
+    <BAD_REASON>점검 대상 시스템 계정 중 로그인 가능한 Shell이 부여된 계정이 존재하거나 passwd 파일을 확인할 수 없음</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-007">
+    <NAME>패스워드 암호화 저장</NAME>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>쉐도우 패스워드를 사용하거나, 패스워드를 암호화하여 저장하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>쉐도우 패스워드를 사용하지 않고, 패스워드를 암호화하여 저장하지 않는 경우</BAD_STANDARD>
+    <EVALUATOR>password_encryption_store</EVALUATOR>
+    <RULE key="passwd_file_exists" operator="equals" expected="true" />
+    <RULE key="shadow_file_exists" operator="equals" expected="true" />
+    <RULE key="passwd_nonshadow_account" operator="empty" expected="true" />
+    <RULE key="active_account_password_status" operator="none_split_equals" field_index="1" expected="NP" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>passwd에 직접 저장된 패스워드가 없고 활성 계정에 무패스워드 상태가 확인되지 않음</GOOD_REASON>
+    <BAD_REASON>쉐도우 패스워드 사용이 확인되지 않거나 무패스워드 활성 계정이 존재함</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-008">
+    <NAME>동일한 UID 금지</NAME>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>동일한 UID로 설정된 사용자 계정이 존재하지 않는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>동일한 UID로 설정된 사용자 계정이 존재하는 경우</BAD_STANDARD>
+    <EVALUATOR>duplicate_uid</EVALUATOR>
+    <RULE key="passwd_file_exists" operator="equals" expected="true" />
+    <RULE key="uid_account" operator="unique_split_field" field_index="0" expected="true" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>동일한 UID를 공유하는 계정이 없음</GOOD_REASON>
+    <BAD_REASON>동일한 UID를 공유하는 계정이 존재하거나 passwd 파일을 확인할 수 없음</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-009">
+    <NAME>root 이외의 UID가 0 금지</NAME>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>root 계정과 동일한 UID를 갖는 계정이 존재하지 않는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>root 계정과 동일한 UID를 갖는 계정이 존재하는 경우</BAD_STANDARD>
+    <EVALUATOR>root_uid_zero</EVALUATOR>
+    <RULE key="passwd_file_exists" operator="equals" expected="true" />
+    <RULE key="uid_account" operator="uid_zero_only_root" expected="true" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>UID 0을 사용하는 계정이 root 외에 존재하지 않음</GOOD_REASON>
+    <BAD_REASON>root 이외에 UID 0을 사용하는 계정이 존재하거나 passwd 파일을 확인할 수 없음</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-010">
+    <NAME>안전한 비밀번호 암호화 알고리즘 사용</NAME>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>SHA-2 이상의 안전한 비밀번호 암호화 알고리즘을 사용하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>SHA-2 이전의 취약한 비밀번호 암호화 알고리즘을 사용하는 경우</BAD_STANDARD>
+    <EVALUATOR>password_encryption_algorithm</EVALUATOR>
+    <RULE key="shadow_file_exists" operator="equals" expected="true" />
+    <RULE key="active_hash_scheme" operator="none_split_regex" field_index="1" expected="^(1|2.*)$" role="existing_hashes" />
+    <RULE key="encrypt_method" operator="in_ci" expected="SHA256,SHA512,YESCRYPT" role="login_defs" />
+    <RULE key="pam_password_module_count" operator="greater_equal" expected="1" role="pam_present" />
+    <RULE key="pam_password_module_line" operator="any_regex_ci" expected="sha256|sha512|yescrypt" role="pam_algorithm" />
+    <MANUAL key="collector_error" operator="equals" expected="true" reason="증적 수집 과정에서 오류가 발생하여 자동 판정할 수 없음" />
+    <GOOD_REASON>기존 계정 해시, 신규 계정 기본 암호화 방식, PAM 암호화 설정이 원본 기준을 충족함</GOOD_REASON>
+    <BAD_REASON>취약한 기존 계정 해시가 존재하거나 login.defs/PAM 암호화 설정이 원본 기준을 충족하지 못함</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-011">
+    <NAME>DoS 공격에 취약한 서비스 비활성화</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>사용하지 않는 DoS 공격에 취약한 서비스가 비활성화 된 경우</GOOD_STANDARD>
+    <BAD_STANDARD>사용하지 않는 DoS 공격에 취약한 서비스가 활성화 된 경우</BAD_STANDARD>
+    <EVALUATOR>generic</EVALUATOR>
+    <RULE key="legacy_service" operator="all_split_equals" field_index="1" expected="false" />
+    <GOOD_REASON>사용하지 않는 DoS 공격에 취약한 서비스가 비활성화 된 경우</GOOD_REASON>
+    <BAD_REASON>사용하지 않는 DoS 공격에 취약한 서비스가 활성화 된 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-012">
+    <NAME>불필요한 서비스 비활성화</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>불필요한 서비스 관련 데몬이 비활성화되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>불필요한 서비스 관련 데몬이 활성화되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>generic</EVALUATOR>
+    <RULE key="smtp_active" operator="equals" expected="false" />
+    <RULE key="dns_active" operator="equals" expected="false" />
+    <RULE key="snmp_active" operator="equals" expected="false" />
+    <RULE key="nfs_active" operator="equals" expected="false" />
+    <GOOD_REASON>불필요한 서비스 관련 데몬이 비활성화되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>불필요한 서비스 관련 데몬이 활성화되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-013">
+    <NAME>취약한 서비스 비활성화</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>finger, tftp, talk, automountd, RPC 및 r계열 서비스 모두 비활성화되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>finger, tftp, talk, automountd, RPC 및 r계열 서비스가 활성화되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>generic</EVALUATOR>
+    <RULE key="vulnerable_service" operator="all_split_equals" field_index="1" expected="false" />
+    <RULE key="autofs_active" operator="equals" expected="false" />
+    <RULE key="rpc_active" operator="equals" expected="false" />
+    <GOOD_REASON>finger, tftp, talk, automountd, RPC 및 r계열 서비스 모두 비활성화되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>finger, tftp, talk, automountd, RPC 및 r계열 서비스가 활성화되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-014">
+    <NAME>Cron 관련 파일 소유자 및 권한 설정</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>cron 접근제어 파일 소유자가 root이고, 권한이 640 이하인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>cron 접근제어파일 소유자가 root가 아니거나, 권한이 640 이하가 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>cron_permissions</EVALUATOR>
+    <GOOD_REASON>cron 접근제어 파일 소유자가 root이고, 권한이 640 이하인 경우</GOOD_REASON>
+    <BAD_REASON>cron 접근제어파일 소유자가 root가 아니거나, 권한이 640 이하가 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-015">
+    <NAME>암호화되지 않는 FTP 서비스 비활성화</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>암호화되지 않은 FTP 서비스가 비활성화된 경우</GOOD_STANDARD>
+    <BAD_STANDARD>암호화되지 않은 FTP 서비스가 활성화된 경우</BAD_STANDARD>
+    <EVALUATOR>generic</EVALUATOR>
+    <RULE key="ftp_active" operator="equals" expected="false" />
+    <RULE key="ftp_port21_active" operator="equals" expected="false" />
+    <GOOD_REASON>암호화되지 않은 FTP 서비스가 비활성화된 경우</GOOD_REASON>
+    <BAD_REASON>암호화되지 않은 FTP 서비스가 활성화된 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-016">
+    <NAME>ftpusers 파일 소유자 및 권한 설정</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>L</GRADE>
+    <GOOD_STANDARD>FTP 서비스가 비활성화되어 있거나, 활성화 시 ftpusers 파일의 소유자가 root이고 권한이 640 이하인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>FTP 서비스가 활성화되어 있고, ftpusers 파일의 소유자가 root가 아니거나 권한이 640 이하가 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>ftpusers_permission</EVALUATOR>
+    <NA key="ftp_active" operator="equals" expected="false" reason="FTP 서비스 비활성화" />
+    <GOOD_REASON>FTP 서비스가 비활성화되어 있거나, 활성화 시 ftpusers 파일의 소유자가 root이고 권한이 640 이하인 경우</GOOD_REASON>
+    <BAD_REASON>FTP 서비스가 활성화되어 있고, ftpusers 파일의 소유자가 root가 아니거나 권한이 640 이하가 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-017">
+    <NAME>ftpusers 파일 설정</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>FTP 서비스가 비활성화되어 있거나, 활성화 시 root 계정 접속을 차단한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>FTP 서비스가 활성화되어 있고, root 계정 접속을 허용한 경우</BAD_STANDARD>
+    <EVALUATOR>ftp_root_restriction</EVALUATOR>
+    <NA key="ftp_active" operator="equals" expected="false" reason="FTP 서비스 비활성화" />
+    <GOOD_REASON>FTP 서비스가 비활성화되어 있거나, 활성화 시 root 계정 접속을 차단한 경우</GOOD_REASON>
+    <BAD_REASON>FTP 서비스가 활성화되어 있고, root 계정 접속을 허용한 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-018">
+    <NAME>공유 서비스에 대한 익명 접근 제한 설정</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>공유 서비스에 대해 익명 접근을 제한한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>공유 서비스에 대해 익명 접근을 허용한 경우</BAD_STANDARD>
+    <EVALUATOR>anonymous_share</EVALUATOR>
+    <GOOD_REASON>공유 서비스에 대해 익명 접근을 제한한 경우</GOOD_REASON>
+    <BAD_REASON>공유 서비스에 대해 익명 접근을 허용한 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-019">
+    <NAME>암호화된 원격접속 서비스 사용 및 기본 포트 변경</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>원격 접근 시 암호화 및 root 계정에 대한 직접 접속을 제한한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>원격 접근 시 암호화하지 않거나, root 직접 접속을 제한하지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>remote_access_policy</EVALUATOR>
+    <GOOD_REASON>원격 접근 시 암호화 및 root 계정에 대한 직접 접속을 제한한 경우</GOOD_REASON>
+    <BAD_REASON>원격 접근 시 암호화하지 않거나, root 직접 접속을 제한하지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-020">
+    <NAME>NFS 접근통제</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>NFS 서비스를 사용하지 않거나, 접근통제 설정이 적용 되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>불필요하게 NFS 서비스를 사용하고, 접근통제 설정이 미적용 되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>nfs_access</EVALUATOR>
+    <NA key="nfs_active" operator="equals" expected="false" result="GOOD" reason="NFS 서비스 비활성화" />
+    <GOOD_REASON>NFS 서비스를 사용하지 않거나, 접근통제 설정이 적용 되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>불필요하게 NFS 서비스를 사용하고, 접근통제 설정이 미적용 되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-021">
+    <NAME>NFS 설정파일 접근권한</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>NFS 접근제어 설정파일의 소유자가 root이고, 권한이 644 이하인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>NFS 접근제어 설정파일의 소유자가 root가 아니고, 권한이 644 이하가 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>file_permission_nfs</EVALUATOR>
+    <NA key="nfs_active" operator="equals" expected="false" result="GOOD" reason="NFS 서비스 비활성화" />
+    <GOOD_REASON>NFS 접근제어 설정파일의 소유자가 root이고, 권한이 644 이하인 경우</GOOD_REASON>
+    <BAD_REASON>NFS 접근제어 설정파일의 소유자가 root가 아니고, 권한이 644 이하가 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-022">
+    <NAME>SMTP expn, vrfy 명령어 제한</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>서비스를 로컬메일 용도로만 사용하는 경우 Sendmail 미사용과 동일하게 양호로 처리</GOOD_STANDARD>
+    <BAD_STANDARD>불필요하게 SMTP 서비스 사용하거나, goaway 또는 noexpn, novrfy 옵션이 미설정되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>smtp_restriction</EVALUATOR>
+    <NA key="smtp_active" operator="equals" expected="false" result="GOOD" reason="SMTP 서비스 비활성화" />
+    <GOOD_REASON>서비스를 로컬메일 용도로만 사용하는 경우 Sendmail 미사용과 동일하게 양호로 처리</GOOD_REASON>
+    <BAD_REASON>불필요하게 SMTP 서비스 사용하거나, goaway 또는 noexpn, novrfy 옵션이 미설정되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-023">
+    <NAME>DNS Zone Transfer 설정</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>DNS 서비스 미사용 또는, Zone Transfer를 허가된 사용자에게만 허용한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>불필요하게 DNS 서비스를 사용하고 있거나, Transfer를 허가된 사용자에게만 허용하지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>dns_transfer</EVALUATOR>
+    <NA key="dns_active" operator="equals" expected="false" result="GOOD" reason="DNS 서비스 비활성화" />
+    <GOOD_REASON>DNS 서비스 미사용 또는, Zone Transfer를 허가된 사용자에게만 허용한 경우</GOOD_REASON>
+    <BAD_REASON>불필요하게 DNS 서비스를 사용하고 있거나, Transfer를 허가된 사용자에게만 허용하지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-024">
+    <NAME>SNMP 서비스 Community String의 복잡성 설정</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>SNMP CommunityString이 public, private이 아닌 경우</GOOD_STANDARD>
+    <BAD_STANDARD>불필요하게 SNMP 서비스를 사용하고 있거나, CommunityString이 public, private일 경우</BAD_STANDARD>
+    <EVALUATOR>snmp_community</EVALUATOR>
+    <NA key="snmp_active" operator="equals" expected="false" result="GOOD" reason="SNMP 서비스 비활성화" />
+    <GOOD_REASON>SNMP CommunityString이 public, private이 아닌 경우</GOOD_REASON>
+    <BAD_REASON>불필요하게 SNMP 서비스를 사용하고 있거나, CommunityString이 public, private일 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-025">
+    <NAME>sudo 명령어 접근 관리</NAME>
+    <GROUP>서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>/etc/sudoers 파일의 소유자가 root이고, 권한이 640 이하인 경우 양호</GOOD_STANDARD>
+    <BAD_STANDARD>/etc/sudoers 파일의 소유자가 root이 아니거나, 권한이 640 이하인 경우 취약</BAD_STANDARD>
+    <EVALUATOR>path_permission</EVALUATOR>
+    <RULE key="sudoers_file" operator="path_owner_mode_le" expected="root,440" />
+    <GOOD_REASON>/etc/sudoers 파일의 소유자가 root이고, 권한이 640 이하인 경우 양호</GOOD_REASON>
+    <BAD_REASON>/etc/sudoers 파일의 소유자가 root이 아니거나, 권한이 640 이하인 경우 취약</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-026">
+    <NAME>웹 서비스 디렉터리 쓰기 권한 관리</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>ServerRoot, DocumentRoot 폴더의 소유자가 Web Server 계정이고, 권한이 755 이하로 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>ServerRoot, DocumentRoot 폴더의 소유자가  Web Server 계정이 아니거나, 권한이 755 초과로 설정되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>web_dir_perm</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>ServerRoot, DocumentRoot 폴더의 소유자가 Web Server 계정이고, 권한이 755 이하로 설정되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>ServerRoot, DocumentRoot 폴더의 소유자가  Web Server 계정이 아니거나, 권한이 755 초과로 설정되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-027">
+    <NAME>웹 서비스 소스/설정파일 권한 관리</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>소스 파일의 권한이 644 이하로 설정되어 있고, 설정파일의 권한이 640 이하로 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>소스 파일의 권한이 644 초과로 설정되어 있거나, 설정파일의 권한이 640 초과로 설정되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>web_file_perm</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>소스 파일의 권한이 644 이하로 설정되어 있고, 설정파일의 권한이 640 이하로 설정되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>소스 파일의 권한이 644 초과로 설정되어 있거나, 설정파일의 권한이 640 초과로 설정되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-028">
+    <NAME>웹 서비스 파일 업로드 및 다운로드 용량 제한</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>L</GRADE>
+    <GOOD_STANDARD>파일 업로드 및 다운로드 용량을 제한한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>파일 업로드 및 다운로드 용량을 제한하지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>web_upload_limit</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>파일 업로드 및 다운로드 용량을 제한한 경우</GOOD_REASON>
+    <BAD_REASON>파일 업로드 및 다운로드 용량을 제한하지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-029">
+    <NAME>웹 서비스 상위 디렉터리 접근 금지</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>상위 디렉터리에 이동제한을 설정한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>상위 디렉터리에 이동제한을 설정하지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>web_dir_traversal</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>상위 디렉터리에 이동제한을 설정한 경우</GOOD_REASON>
+    <BAD_REASON>상위 디렉터리에 이동제한을 설정하지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-030">
+    <NAME>웹 서비스 정보 숨김</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>ServerTokens Prod, ServerSignature Off로 설정되어있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>ServerTokens Prod, ServerSignature Off로 설정되어있지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>web_banner</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>ServerTokens Prod, ServerSignature Off로 설정되어있는 경우</GOOD_REASON>
+    <BAD_REASON>ServerTokens Prod, ServerSignature Off로 설정되어있지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-031">
+    <NAME>웹 서비스 링크 사용금지</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>심볼릭 링크, aliases 사용을 제한한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>심볼릭 링크, aliases 사용을 제한하지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>web_symlink</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>심볼릭 링크, aliases 사용을 제한한 경우</GOOD_REASON>
+    <BAD_REASON>심볼릭 링크, aliases 사용을 제한하지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-032">
+    <NAME>웹 서비스 CGI 스크립트 실행 제한</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>conf 파일 내 ScriptAlias /cgi-bin/ 설정이 존재하지 않거나, Options 지시자에 ExcelCGI 설정이 존재하지 않는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>conf 파일 내 ScriptALias /cgi-bin/ 설정이 존재하거나, Options 지시자에 ExcelCGI 설정이 존재하는 경우</BAD_STANDARD>
+    <EVALUATOR>web_cgi</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>conf 파일 내 ScriptAlias /cgi-bin/ 설정이 존재하지 않거나, Options 지시자에 ExcelCGI 설정이 존재하지 않는 경우</GOOD_REASON>
+    <BAD_REASON>conf 파일 내 ScriptALias /cgi-bin/ 설정이 존재하거나, Options 지시자에 ExcelCGI 설정이 존재하는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-033">
+    <NAME>웹 서비스 디렉터리 리스팅 제거</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>디렉터리 검색 기능을 사용하지 않는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>디렉터리 검색 기능을 사용하는 경우</BAD_STANDARD>
+    <EVALUATOR>web_listing</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>디렉터리 검색 기능을 사용하지 않는 경우</GOOD_REASON>
+    <BAD_REASON>디렉터리 검색 기능을 사용하는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-034">
+    <NAME>웹 서비스 영역의 분리</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>DocumentRoot를 별도의 디렉터리로 지정한 경우</GOOD_STANDARD>
+    <BAD_STANDARD>DocumentRoot를 기본 디렉터리 또는 주요 디렉터리(/etc, /usr, /sys 등)에 지정한 경우</BAD_STANDARD>
+    <EVALUATOR>web_docroot</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>DocumentRoot를 별도의 디렉터리로 지정한 경우</GOOD_REASON>
+    <BAD_REASON>DocumentRoot를 기본 디렉터리 또는 주요 디렉터리(/etc, /usr, /sys 등)에 지정한 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-035">
+    <NAME>웹 서비스 불필요한 파일 제거</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>기본으로 생성되는 불필요한 파일 및 디렉터리가 제거되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>기본으로 생성되는 불필요한 파일 및 디렉터리가 제거되지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>web_unnecessary</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>기본으로 생성되는 불필요한 파일 및 디렉터리가 제거되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>기본으로 생성되는 불필요한 파일 및 디렉터리가 제거되지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-036">
+    <NAME>웹 서비스 데몬 관리</NAME>
+    <GROUP>웹 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>웹 서비스 데몬이 비활성화이거나, root 권한으로 구동되지 않는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>웹 서비스 데몬이 root 권한으로 구동되는 경우</BAD_STANDARD>
+    <EVALUATOR>web_daemon_priv</EVALUATOR>
+    <NA key="web_all_inactive" operator="equals" expected="true" result="NA" reason="WEB 서비스 비활성화" />
+    <GOOD_REASON>웹 서비스 데몬이 비활성화이거나, root 권한으로 구동되지 않는 경우</GOOD_REASON>
+    <BAD_REASON>웹 서비스 데몬이 root 권한으로 구동되는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-037">
+    <NAME>UMASK 설정 관리</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>UMASK 값이 022 이상으로 설정된 경우</GOOD_STANDARD>
+    <BAD_STANDARD>UMASK 값이 022 이상으로 설정되지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>umask</EVALUATOR>
+    <GOOD_REASON>UMASK 값이 022 이상으로 설정된 경우</GOOD_REASON>
+    <BAD_REASON>UMASK 값이 022 이상으로 설정되지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-038">
+    <NAME>/etc/(x)inetd.conf 파일 소유자 및 권한 설정</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>/etc/inetd.conf 파일의 소유자가 root이고, 권한이 600인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>/etc/inetd.conf 파일의 소유자가 root가 아니고, 권한이 600이 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>inetd_permission</EVALUATOR>
+    <GOOD_REASON>/etc/inetd.conf 파일의 소유자가 root이고, 권한이 600인 경우</GOOD_REASON>
+    <BAD_REASON>/etc/inetd.conf 파일의 소유자가 root가 아니고, 권한이 600이 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-039">
+    <NAME>/etc/shadow 파일 소유자 및 권한 설정</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>/etc/shadow 파일의 소유자가 root이고, 권한이 400인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>/etc/shadow 파일의 소유자가 root가 아니거나, 권한이 400이 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>path_permission</EVALUATOR>
+    <RULE key="target_file" operator="path_owner_mode_le" expected="root,400" />
+    <GOOD_REASON>/etc/shadow 파일의 소유자가 root이고, 권한이 400인 경우</GOOD_REASON>
+    <BAD_REASON>/etc/shadow 파일의 소유자가 root가 아니거나, 권한이 400이 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-040">
+    <NAME>/etc/hosts 파일 소유자 및 권한 설정</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>hosts 파일의 소유가 root이고 권한이 644 이하로 설정되어 있을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>hosts 파일의 소유가 root이고 권한이 644 이하로 설정되어 있지 않을 경우</BAD_STANDARD>
+    <EVALUATOR>path_permission</EVALUATOR>
+    <RULE key="target_file" operator="path_owner_mode_le" expected="root,644" />
+    <GOOD_REASON>hosts 파일의 소유가 root이고 권한이 644 이하로 설정되어 있을 경우</GOOD_REASON>
+    <BAD_REASON>hosts 파일의 소유가 root이고 권한이 644 이하로 설정되어 있지 않을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-041">
+    <NAME>/etc/syslog.conf 파일 소유자 및 권한 설정</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>/etc/syslog.conf 파일의 소유자가 root (또는 bin, sys)이고, 권한이 644 이하인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>/etc/syslog.conf 파일의 소유자가 root (또는 bin, sys)가 아니거나, 권한이 644 이하가 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>syslog_permission</EVALUATOR>
+    <GOOD_REASON>/etc/syslog.conf 파일의 소유자가 root (또는 bin, sys)이고, 권한이 644 이하인 경우</GOOD_REASON>
+    <BAD_REASON>/etc/syslog.conf 파일의 소유자가 root (또는 bin, sys)가 아니거나, 권한이 644 이하가 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-042">
+    <NAME>사용자 홈디렉터리 내 환경변수 파일 소유자 및 권한 설정</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되어 있고, 홈 디렉터리 환경변수 파일에 root와 소유자만 쓰기 권한이 부여된 경우</GOOD_STANDARD>
+    <BAD_STANDARD>홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되지 않고, 홈 디렉터리 환경변수 파일에 root와 소유자 외에 쓰기 권한이 부여된 경우</BAD_STANDARD>
+    <EVALUATOR>home_env_permission</EVALUATOR>
+    <GOOD_REASON>홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되어 있고, 홈 디렉터리 환경변수 파일에 root와 소유자만 쓰기 권한이 부여된 경우</GOOD_REASON>
+    <BAD_REASON>홈 디렉터리 환경변수 파일 소유자가 root 또는 해당 계정으로 지정되지 않고, 홈 디렉터리 환경변수 파일에 root와 소유자 외에 쓰기 권한이 부여된 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-043">
+    <NAME>root 계정 환경변수의 'PATH' 값 보안설정</NAME>
+    <GROUP>파일 및 디렉터리관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>PATH 환경변수에 “.” 또는 “::” 이 맨 앞이나 중간에 포함되지 않은 경우</GOOD_STANDARD>
+    <BAD_STANDARD>PATH 환경변수에 “.” 또는 “::” 이 맨 앞이나 중간에 포함된 경우</BAD_STANDARD>
+    <EVALUATOR>path_env</EVALUATOR>
+    <GOOD_REASON>PATH 환경변수에 “.” 또는 “::” 이 맨 앞이나 중간에 포함되지 않은 경우</GOOD_REASON>
+    <BAD_REASON>PATH 환경변수에 “.” 또는 “::” 이 맨 앞이나 중간에 포함된 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-044">
+    <NAME>접속 IP 및 포트 제한</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>/etc/hosts.deny 파일에 최소한의 거부 정책이 적용되어 있거나, 별도의 방화벽을 운영 중인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>/etc/hosts.deny 파일에 최소한의 거부 정책이 미적용되어 있거나, 별도의 방화벽을 운영 중이지 않을 경우</BAD_STANDARD>
+    <EVALUATOR>ip_restrict</EVALUATOR>
+    <GOOD_REASON>/etc/hosts.deny 파일에 최소한의 거부 정책이 적용되어 있거나, 별도의 방화벽을 운영 중인 경우</GOOD_REASON>
+    <BAD_REASON>/etc/hosts.deny 파일에 최소한의 거부 정책이 미적용되어 있거나, 별도의 방화벽을 운영 중이지 않을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-045">
+    <NAME>/etc/passwd 파일 소유자 및 권한 설정</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>/etc/passwd 파일의 소유자가 root 이고, 권한이 644 이하인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>/etc/passwd 파일의 소유자가 root가 아니거나, 권한이 644 이하가 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>path_permission</EVALUATOR>
+    <RULE key="target_file" operator="path_owner_mode_le" expected="root,644" />
+    <GOOD_REASON>/etc/passwd 파일의 소유자가 root 이고, 권한이 644 이하인 경우</GOOD_REASON>
+    <BAD_REASON>/etc/passwd 파일의 소유자가 root가 아니거나, 권한이 644 이하가 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-046">
+    <NAME>/etc/services 파일 소유자 및 권한 설정</NAME>
+    <GROUP>파일 및 디렉터리 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>/etc/services 파일의 소유자가 root(또는 bin, sys)이고, 권한이 644 이하인 경우</GOOD_STANDARD>
+    <BAD_STANDARD>/etc/services 파일의 소유자가 root(또는 bin, sys)가 아니거나, 권한이 644 이하가 아닌 경우</BAD_STANDARD>
+    <EVALUATOR>services_permission</EVALUATOR>
+    <GOOD_REASON>/etc/services 파일의 소유자가 root(또는 bin, sys)이고, 권한이 644 이하인 경우</GOOD_REASON>
+    <BAD_REASON>/etc/services 파일의 소유자가 root(또는 bin, sys)가 아니거나, 권한이 644 이하가 아닌 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-047">
+    <NAME>보안에 취약하지 않은 버전의 OS를 사용</NAME>
+    <GROUP>패치관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>서비스 지원이 종료되지 않은 OS 사용할 경우</GOOD_STANDARD>
+    <BAD_STANDARD>서비스 지원이 종료된 OS 사용할 경우</BAD_STANDARD>
+    <EVALUATOR>manual</EVALUATOR>
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>서비스 지원이 종료되지 않은 OS 사용할 경우</GOOD_REASON>
+    <BAD_REASON>서비스 지원이 종료된 OS 사용할 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-048">
+    <NAME>서비스 최신 보안 패치 적용 여부(DNS, SMTP 등)</NAME>
+    <GROUP>패치관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>활성화 된 서비스에 대해 보안에 취약하지 않는 버전을 사용하고 있을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>활성화 된 서비스에 대해 보안에 취약한 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>service_patch</EVALUATOR>
+    <GOOD_REASON>활성화 된 서비스에 대해 보안에 취약하지 않는 버전을 사용하고 있을 경우</GOOD_REASON>
+    <BAD_REASON>활성화 된 서비스에 대해 보안에 취약한 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-049">
+    <NAME>정책에 따른 시스템 로깅 설정</NAME>
+    <GROUP>로그 및 백업 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>정책에 맞게 최소한의 로깅 설정(기본 로그 설정)이 되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>최소한의 로깅 설정(기본 로그 설정)이 되어 있지 않을 경우</BAD_STANDARD>
+    <EVALUATOR>logging</EVALUATOR>
+    <GOOD_REASON>정책에 맞게 최소한의 로깅 설정(기본 로그 설정)이 되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>최소한의 로깅 설정(기본 로그 설정)이 되어 있지 않을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-050">
+    <NAME>로그 디렉터리 소유자 및 권한 설정</NAME>
+    <GROUP>로그 및 백업 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>시스템 로그 및 로그 설정 파일의 권한이 644 이하 /var/log/wtmp, /var/log/lastlog 파일 권한이 664 이하 /var/log/btmp 파일 권한이 660 이하인 경우 양호</GOOD_STANDARD>
+    <BAD_STANDARD>로그 및 로그 설정 파일 권한이 올바르지 않게 부여된 경우</BAD_STANDARD>
+    <EVALUATOR>log_permission</EVALUATOR>
+    <GOOD_REASON>시스템 로그 및 로그 설정 파일의 권한이 644 이하 /var/log/wtmp, /var/log/lastlog 파일 권한이 664 이하 /var/log/btmp 파일 권한이 660 이하인 경우 양호</GOOD_REASON>
+    <BAD_REASON>로그 및 로그 설정 파일 권한이 올바르지 않게 부여된 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-051">
+    <NAME>중요데이터 백업 여부</NAME>
+    <GROUP>로그 및 백업 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>중요데이터에 대하여 최소한의 RTO(목표복구시간), RPO(목표복구시간)를 위한 로컬/소산 백업 계획을 수립하고 이행하고 있을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>중요데이터에 대하여 최소한의 로컬/소산 백업 계획을 수립하지 않거나, 이행하고 있지 않을 경우</BAD_STANDARD>
+    <EVALUATOR>manual</EVALUATOR>
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>중요데이터에 대하여 최소한의 RTO(목표복구시간), RPO(목표복구시간)를 위한 로컬/소산 백업 계획을 수립하고 이행하고 있을 경우</GOOD_REASON>
+    <BAD_REASON>중요데이터에 대하여 최소한의 로컬/소산 백업 계획을 수립하지 않거나, 이행하고 있지 않을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-052">
+    <NAME>패스워드 사용기간, 복잡도 설정 및 암호화 저장</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>기관 정책에 맞게 패스워드 복잡도 설정이 적용되어 있고 암호화하여 저장하고 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>기관 정책에 맞게 패스워드 복잡도 설정이 적용되어 있지 않거나, 암호화하여 저장하고 있지 않는 경우</BAD_STANDARD>
+    <EVALUATOR>db_manual</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>기관 정책에 맞게 패스워드 복잡도 설정이 적용되어 있고 암호화하여 저장하고 있는 경우</GOOD_REASON>
+    <BAD_REASON>기관 정책에 맞게 패스워드 복잡도 설정이 적용되어 있지 않거나, 암호화하여 저장하고 있지 않는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-053">
+    <NAME>DB 원격 접속 제한</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>DB서버에 지정된 IP주소에서만 접근 가능하도록 제한하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>DB서버에 지정된 IP주소에서만 접근 가능하도록 제한하지 않는 경우</BAD_STANDARD>
+    <EVALUATOR>db_remote</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <GOOD_REASON>DB서버에 지정된 IP주소에서만 접근 가능하도록 제한하는 경우</GOOD_REASON>
+    <BAD_REASON>DB서버에 지정된 IP주소에서만 접근 가능하도록 제한하지 않는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-054">
+    <NAME>DBA이외의 인가되지 않은 사용자가 시스템 테이블에 접근할 수 없도록 설정</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>시스템 테이블이 DBA만 접근 가능하도록 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>시스템 테이블이 DBA 외 일반 사용자 계정이 접근 가능하도록 설정되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>db_manual</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>시스템 테이블이 DBA만 접근 가능하도록 설정되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>시스템 테이블이 DBA 외 일반 사용자 계정이 접근 가능하도록 설정되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-055">
+    <NAME>데이터베이스 접근, 변경, 삭제 등의 감사기록 정책 설정</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>DBMS의 감사 로그 저장 정책이 수립되어 있으며, 정책 설정이 적용되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>DBMS에 대한 감사 로그 저장을 하지 않거나 정책 설정이 적용되어 있지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>db_audit</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <GOOD_REASON>DBMS의 감사 로그 저장 정책이 수립되어 있으며, 정책 설정이 적용되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>DBMS에 대한 감사 로그 저장을 하지 않거나 정책 설정이 적용되어 있지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-056">
+    <NAME>데이터베이스 계정의 umask를 022 이상으로 설정하여 사용</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>계정의 umask가 022 이상으로 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>계정의 umask가 022 이상으로 설정되어 있지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>db_umask</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <GOOD_REASON>계정의 umask가 022 이상으로 설정되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>계정의 umask가 022 이상으로 설정되어 있지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-057">
+    <NAME>데이터베이스 주요 파일들의 접근 권한 설정</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>주요 설정 파일 및 디렉터리의 접근 권한이 적절하게 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>주요 설정 파일 및 디렉터리의 접근 권한이 적절하게 설정되어 있지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>db_file_perm</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <GOOD_REASON>주요 설정 파일 및 디렉터리의 접근 권한이 적절하게 설정되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>주요 설정 파일 및 디렉터리의 접근 권한이 적절하게 설정되어 있지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-058">
+    <NAME>데이터베이스의 자원 제한 기능 설정</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>L</GRADE>
+    <GOOD_STANDARD>데이터베이스 자원 제한 설정이 적용되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>데이터베이스 자원 제한 설정이 적용되어 있지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>db_resource</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <GOOD_REASON>데이터베이스 자원 제한 설정이 적용되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>데이터베이스 자원 제한 설정이 적용되어 있지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-059">
+    <NAME>보안에 취약하지 않은 버전의 데이터베이스를 사용(EOS)</NAME>
+    <GROUP>데이터베이스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>서비스 지원이 종료되지 않은 버전을 사용하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>서비스 지원이 종료된 버전을 사용하는 경우</BAD_STANDARD>
+    <EVALUATOR>db_manual</EVALUATOR>
+    <NA key="db_all_inactive" operator="equals" expected="true" result="NA" reason="DBMS 서비스 비활성화" />
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>서비스 지원이 종료되지 않은 버전을 사용하는 경우</GOOD_REASON>
+    <BAD_REASON>서비스 지원이 종료된 버전을 사용하는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-060">
+    <NAME>데몬 관리</NAME>
+    <GROUP>웹 어플리케이션 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>구동 데몬의 계정이 root 권한이 아닌 경우</GOOD_STANDARD>
+    <BAD_STANDARD>구동 데몬의 계정이 root 권한인 경우</BAD_STANDARD>
+    <EVALUATOR>was_daemon_priv</EVALUATOR>
+    <NA key="was_all_inactive" operator="equals" expected="true" result="NA" reason="WAS 서비스 비활성화" />
+    <GOOD_REASON>구동 데몬의 계정이 root 권한이 아닌 경우</GOOD_REASON>
+    <BAD_REASON>구동 데몬의 계정이 root 권한인 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-061">
+    <NAME>관리자 계정명 관리</NAME>
+    <GROUP>웹 어플리케이션 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>계정명이 Default 계정명으로 설정되어 있지 않은 경우</GOOD_STANDARD>
+    <BAD_STANDARD>계정명이 Default 계정명으로 설정되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>was_manual</EVALUATOR>
+    <NA key="was_all_inactive" operator="equals" expected="true" result="NA" reason="WAS 서비스 비활성화" />
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>계정명이 Default 계정명으로 설정되어 있지 않은 경우</GOOD_REASON>
+    <BAD_REASON>계정명이 Default 계정명으로 설정되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-062">
+    <NAME>관리자 패스워드 관리</NAME>
+    <GROUP>웹 어플리케이션 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>관리자 패스워드가 암호화 되어 있거나, 유추하기 쉬운 패스워드로 설정되어 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>관리자 패스워드가 암호화 되어 있지 않거나, 유추하기 쉬운 패스워드로 설정되어 있는 경우</BAD_STANDARD>
+    <EVALUATOR>was_manual</EVALUATOR>
+    <NA key="was_all_inactive" operator="equals" expected="true" result="NA" reason="WAS 서비스 비활성화" />
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>관리자 패스워드가 암호화 되어 있거나, 유추하기 쉬운 패스워드로 설정되어 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>관리자 패스워드가 암호화 되어 있지 않거나, 유추하기 쉬운 패스워드로 설정되어 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-063">
+    <NAME>패스워드 파일 관리</NAME>
+    <GROUP>웹 어플리케이션 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>패스워드 파일에 권한이 640(rw-r-----) 이하로 설정되어 있을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>패스워드 파일에 권한이 640(rw-r-----) 이하로 설정되어 있지 않을 경우</BAD_STANDARD>
+    <EVALUATOR>was_password_file</EVALUATOR>
+    <NA key="was_all_inactive" operator="equals" expected="true" result="NA" reason="WAS 서비스 비활성화" />
+    <GOOD_REASON>패스워드 파일에 권한이 640(rw-r-----) 이하로 설정되어 있을 경우</GOOD_REASON>
+    <BAD_REASON>패스워드 파일에 권한이 640(rw-r-----) 이하로 설정되어 있지 않을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-064">
+    <NAME>디렉터리 쓰기 권한 관리</NAME>
+    <GROUP>웹 어플리케이션 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>홈 디렉터리 또는 웹 서버, 관리 서버 디렉터리 권한이 755(drwxr-xr-x) 이하로 설정되어 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>홈 디렉터리 또는 웹 서버, 관리 서버 디렉터리 권한이 755(drwxr-xr-x) 이하로 설정되어 있지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>was_dir_perm</EVALUATOR>
+    <NA key="was_all_inactive" operator="equals" expected="true" result="NA" reason="WAS 서비스 비활성화" />
+    <GOOD_REASON>홈 디렉터리 또는 웹 서버, 관리 서버 디렉터리 권한이 755(drwxr-xr-x) 이하로 설정되어 있는 경우</GOOD_REASON>
+    <BAD_REASON>홈 디렉터리 또는 웹 서버, 관리 서버 디렉터리 권한이 755(drwxr-xr-x) 이하로 설정되어 있지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-065">
+    <NAME>접근 로그 활성화</NAME>
+    <GROUP>웹 어플리케이션 서비스 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>접근 로그가 활성화 되어 있거나, 접근 로그가 비활성화 되어있지만 별도의 보안솔루션 등을 통해 접근 제어가 이루어지고 있는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>접근 로그가 비활성화 되어있는 경우</BAD_STANDARD>
+    <EVALUATOR>was_access_log</EVALUATOR>
+    <NA key="was_all_inactive" operator="equals" expected="true" result="NA" reason="WAS 서비스 비활성화" />
+    <GOOD_REASON>접근 로그가 활성화 되어 있거나, 접근 로그가 비활성화 되어있지만 별도의 보안솔루션 등을 통해 접근 제어가 이루어지고 있는 경우</GOOD_REASON>
+    <BAD_REASON>접근 로그가 비활성화 되어있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-066">
+    <NAME>최신 패치 적용</NAME>
+    <GROUP>웹 어플리케이션 서비스 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>최신 보안패치가 적용되어 있을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>최신 보안패치가 적용되어 있지 않은 경우</BAD_STANDARD>
+    <EVALUATOR>was_manual</EVALUATOR>
+    <NA key="was_all_inactive" operator="equals" expected="true" result="NA" reason="WAS 서비스 비활성화" />
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>최신 보안패치가 적용되어 있을 경우</GOOD_REASON>
+    <BAD_REASON>최신 보안패치가 적용되어 있지 않은 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-067">
+    <NAME>Apache Log4j 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>JAVA 버전에 따라 Log4j를 최신 버전으로 사용하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>JAVA 버전에 따라 Log4j를 최신 버전으로 사용하지 않는 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>JAVA 버전에 따라 Log4j를 최신 버전으로 사용하는 경우</GOOD_REASON>
+    <BAD_REASON>JAVA 버전에 따라 Log4j를 최신 버전으로 사용하지 않는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-068">
+    <NAME>Tomcat(Ghostcat) 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>양호한 버전의 Apache Tomcat을 사용할 경우</GOOD_STANDARD>
+    <BAD_STANDARD>취약한 버전의 Apache Tomcat을 사용할 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>양호한 버전의 Apache Tomcat을 사용할 경우</GOOD_REASON>
+    <BAD_REASON>취약한 버전의 Apache Tomcat을 사용할 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-069">
+    <NAME>OpenSSL 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>취약하지 않은 버전의 OpenSSL 버전을 사용하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>취약한 버전의 OpenSSL 버전</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>취약하지 않은 버전의 OpenSSL 버전을 사용하는 경우</GOOD_REASON>
+    <BAD_REASON>취약한 버전의 OpenSSL 버전</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-070">
+    <NAME>Shellshock 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Shellshock 취약점이 존재하는 bash 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Shellshock 취약점이 존재하는 bash 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Shellshock 취약점이 존재하는 bash 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Shellshock 취약점이 존재하는 bash 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-071">
+    <NAME>Linux CoW LPE 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Linux CoW LPE 취약점이 존재하지 않는 Linux Kernel 버전을 사용하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Linux CoW LPE 취약점이 존재하는 Linux Kernel 버전을 사용하고 있는 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Linux CoW LPE 취약점이 존재하지 않는 Linux Kernel 버전을 사용하는 경우</GOOD_REASON>
+    <BAD_REASON>Linux CoW LPE 취약점이 존재하는 Linux Kernel 버전을 사용하고 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-072">
+    <NAME>Polkit 권한 상승 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Polkit 권한 상승 취약점(CVE-2021-4034 CVE-2021-3560)이 존재하지 않는 Polkit 버전을 사용하는 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Polkit 권한 상승 취약점(CVE-2021-4034 CVE-2021-3560)이 존재하는 Polkit 버전을 사용하고 있는 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Polkit 권한 상승 취약점(CVE-2021-4034 CVE-2021-3560)이 존재하지 않는 Polkit 버전을 사용하는 경우</GOOD_REASON>
+    <BAD_REASON>Polkit 권한 상승 취약점(CVE-2021-4034 CVE-2021-3560)이 존재하는 Polkit 버전을 사용하고 있는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-073">
+    <NAME>Spring4shell 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Spring Framework를 사용하지 않거나, Spring4shell 취약점(CVE-2022-22965)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Spring4shell 취약점(CVE-2022-22965)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Spring Framework를 사용하지 않거나, Spring4shell 취약점(CVE-2022-22965)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Spring4shell 취약점(CVE-2022-22965)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-074">
+    <NAME>Text4Shell 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Apache Commons를 사용하지 않거나, Text4Shell 취약점(CVE-2022-42889)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Text4Shell 취약점(CVE-2022-42889)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Apache Commons를 사용하지 않거나, Text4Shell 취약점(CVE-2022-42889)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Text4Shell 취약점(CVE-2022-42889)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-075">
+    <NAME>Spring Framework 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Spring Framework를 사용하지 않거나, Spring Framework 취약점(CVE-2020-5397)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Spring Framework 취약점(CVE-2020-5397)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Spring Framework를 사용하지 않거나, Spring Framework 취약점(CVE-2020-5397)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Spring Framework 취약점(CVE-2020-5397)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-076">
+    <NAME>PHPUnit 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>PHPUnit Framework를 사용하지 않거나, PHPUnit 취약점(CVE-2017-9841)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>PHPUnit 취약점(CVE-2017-9841)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>PHPUnit Framework를 사용하지 않거나, PHPUnit 취약점(CVE-2017-9841)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>PHPUnit 취약점(CVE-2017-9841)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-077">
+    <NAME>Apache Struts 원격 코드 실행 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Apache Strcuts Framework를 사용하지 않거나, Apache Structs 취약점(CVE-2023-50164 CVE-2024-53677)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Apache Structs(CVE-2023-50164 CVE-2024-53677)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Apache Strcuts Framework를 사용하지 않거나, Apache Structs 취약점(CVE-2023-50164 CVE-2024-53677)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Apache Structs(CVE-2023-50164 CVE-2024-53677)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-078">
+    <NAME>Apache ActiveMQ 원격 코드 실행 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Apache ActiveMQ 라이브러리를 사용하지 않거나, Apache ActiveMQ 취약점(CVE-2023-46604)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Apache ActiveMQ 취약점(CVE-2023-46604)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Apache ActiveMQ 라이브러리를 사용하지 않거나, Apache ActiveMQ 취약점(CVE-2023-46604)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Apache ActiveMQ 취약점(CVE-2023-46604)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-079">
+    <NAME>Apache Shiro 원격 코드 실행 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Apache Shiro Framework를 사용하지 않거나, Apache Shiro 취약점(CVE-2023-34478)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Apache Shiro 취약점(CVE-2023-34478)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Apache Shiro Framework를 사용하지 않거나, Apache Shiro 취약점(CVE-2023-34478)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Apache Shiro 취약점(CVE-2023-34478)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-080">
+    <NAME>Jenkins 원격 코드 실행 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>Jenkins 프로그램을 사용하지 않거나, Jenkins 취약점(CVE-2024-23897)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Jenkins 취약점(CVE-2024-23897)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Jenkins 프로그램을 사용하지 않거나, Jenkins 취약점(CVE-2024-23897)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Jenkins 취약점(CVE-2024-23897)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-081">
+    <NAME>Samba ZeroLogon 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Samba ZeroLogon 취약점(CVE-2020-1472)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Samba ZeroLogon 취약점(CVE-2020-1472)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Samba ZeroLogon 취약점(CVE-2020-1472)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Samba ZeroLogon 취약점(CVE-2020-1472)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-082">
+    <NAME>Node.js WebSocket DoS 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>Node.js WebSocket DoS 취약점(CVE-2024-37890)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Node.js WebSocket DoS 취약점(CVE-2024-37890)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Node.js WebSocket DoS 취약점(CVE-2024-37890)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Node.js WebSocket DoS 취약점(CVE-2024-37890)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-083">
+    <NAME>glibc 로컬 권한상승 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>glibc 로컬 권한 상승 취약점(CVE-2023-6246 CVE-2023-6779 CVE-2023-6780)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>glibc 로컬 권한 상승 취약점(CVE-2023-6246 CVE-2023-6779 CVE-2023-6780)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>glibc 로컬 권한 상승 취약점(CVE-2023-6246 CVE-2023-6779 CVE-2023-6780)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>glibc 로컬 권한 상승 취약점(CVE-2023-6246 CVE-2023-6779 CVE-2023-6780)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-084">
+    <NAME>OpenSSH 원격 코드 실행 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>OpenSSH를 사용하지 않거나, OpenSSH 원격 코드 실행 취약점(CVE-2023-38408 CVE-2024-6387)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>OpenSSH 원격 코드 실행 취약점(CVE-2023-38408 CVE-2024-6387)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>OpenSSH를 사용하지 않거나, OpenSSH 원격 코드 실행 취약점(CVE-2023-38408 CVE-2024-6387)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>OpenSSH 원격 코드 실행 취약점(CVE-2023-38408 CVE-2024-6387)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-085">
+    <NAME>Red Hat JBoss RichFaces Lib 원격 코드 실행 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>JBoss RichFaces Lib를 사용하지 않거나, Red Hat JBoss RichFaces Lib 원격 코드 실행 취약점(CVE-2013-2165 CVE-2013-4316 CVE-2018-14667)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Red Hat JBoss RichFaces Lib 원격 코드 실행 취약점(CVE-2013-2165 CVE-2013-4316 CVE-2018-14667)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>JBoss RichFaces Lib를 사용하지 않거나, Red Hat JBoss RichFaces Lib 원격 코드 실행 취약점(CVE-2013-2165 CVE-2013-4316 CVE-2018-14667)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Red Hat JBoss RichFaces Lib 원격 코드 실행 취약점(CVE-2013-2165 CVE-2013-4316 CVE-2018-14667)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-086">
+    <NAME>Kernel 권한 상승 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>Kernel 권한 상승 취약점(CVE-2024-53141)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Kernel 권한 상승 취약점(CVE-2024-53141)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Kernel 권한 상승 취약점(CVE-2024-53141)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Kernel 권한 상승 취약점(CVE-2024-53141)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-087">
+    <NAME>glibc Looney Tunables 권한 상승 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>glibc Looney Tunables 권한 상승 취약점(CVE-2023-4911)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>glibc Looney Tunables 권한 상승 취약점(CVE-2023-4911)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>glibc Looney Tunables 권한 상승 취약점(CVE-2023-4911)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>glibc Looney Tunables 권한 상승 취약점(CVE-2023-4911)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-088">
+    <NAME>curl BOF 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>curl을 사용하지 않거나, curl BOF 취약점(CVE-2019-5435 CVE-2023-38545)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>curl BOF 취약점(CVE-2019-5435 CVE-2023-38545)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>curl을 사용하지 않거나, curl BOF 취약점(CVE-2019-5435 CVE-2023-38545)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>curl BOF 취약점(CVE-2019-5435 CVE-2023-38545)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-089">
+    <NAME>Use-After-Free 커널 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>Use-After-Free 커널 취약점(CVE-2021-22555 CVE-2023-32233 CVE-2024-1086)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Use-After-Free 커널 취약점(CVE-2021-22555 CVE-2023-32233 CVE-2024-1086)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Use-After-Free 커널 취약점(CVE-2021-22555 CVE-2023-32233 CVE-2024-1086)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Use-After-Free 커널 취약점(CVE-2021-22555 CVE-2023-32233 CVE-2024-1086)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-090">
+    <NAME>Node.js cross-spawn ReDoS 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>Node.js cross-spawn ReDoS 취약점(CVE-2024-21538)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Node.js cross-spawn ReDoS 취약점(CVE-2024-21538)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Node.js cross-spawn ReDoS 취약점(CVE-2024-21538)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Node.js cross-spawn ReDoS 취약점(CVE-2024-21538)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-091">
+    <NAME>Root 권한 획득 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>Root 권한 획득 취약점(CVE-2023-0386)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Root 권한 획득 취약점(CVE-2023-0386)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Root 권한 획득 취약점(CVE-2023-0386)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Root 권한 획득 취약점(CVE-2023-0386)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-092">
+    <NAME>React2Shell 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>React2Shell 취약점(CVE-2025-55182)이 존재하는 react 또는 nextjs 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>React2Shell 취약점(CVE-2025-55182)이 존재하는 react 또는 nextjs 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>React2Shell 취약점(CVE-2025-55182)이 존재하는 react 또는 nextjs 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>React2Shell 취약점(CVE-2025-55182)이 존재하는 react 또는 nextjs 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-093">
+    <NAME>Apache Tomcat 원격 코드 실행 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Apache Tomcat 원격 코드 실행 취약점(CVE-2025-24813 CVE-2025-55752 CVE-2025-55754)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Apache Tomcat 원격 코드 실행 취약점(CVE-2025-24813 CVE-2025-55752 CVE-2025-55754)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Apache Tomcat 원격 코드 실행 취약점(CVE-2025-24813 CVE-2025-55752 CVE-2025-55754)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Apache Tomcat 원격 코드 실행 취약점(CVE-2025-24813 CVE-2025-55752 CVE-2025-55754)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-094">
+    <NAME>Apache Tika XXE 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Apache Tika XXE 취약점(CVE-2025-54988 CVE-2025-66516)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Apache Tika XXE 취약점(CVE-2025-54988 CVE-2025-66516)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Apache Tika XXE 취약점(CVE-2025-54988 CVE-2025-66516)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Apache Tika XXE 취약점(CVE-2025-54988 CVE-2025-66516)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-095">
+    <NAME>sudo 모듈 권한 상승 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>sudo 모듈 권한 상승 취약점(CVE-2025-32463)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>sudo 모듈 권한 상승 취약점(CVE-2025-32463)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>sudo 모듈 권한 상승 취약점(CVE-2025-32463)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>sudo 모듈 권한 상승 취약점(CVE-2025-32463)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-096">
+    <NAME>Linux CoW LPE 취약점 점검</NAME>
+    <GROUP>공개된 취약점 관리</GROUP>
+    <GRADE>M</GRADE>
+    <GOOD_STANDARD>Dirty CoW 취약점(CVE-2016-5195)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>Dirty CoW 취약점(CVE-2016-5195)이 존재하는 버전을 사용하고 있을 경우</BAD_STANDARD>
+    <EVALUATOR>osv</EVALUATOR>
+    <MANUAL key="osv_result_exists" operator="equals" expected="false" reason="OSV 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="osv_result_exists" operator="equals" expected="true" />
+    <RULE key="osv_match_count" operator="equals" expected="0" />
+    <GOOD_REASON>Dirty CoW 취약점(CVE-2016-5195)이 존재하는 버전을 사용하고 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>Dirty CoW 취약점(CVE-2016-5195)이 존재하는 버전을 사용하고 있을 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-097">
+    <NAME>Rootkit 점검</NAME>
+    <GROUP>침해사고 흔적</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>Rootkit이 존재하지 않을 경우(Not infected)</GOOD_STANDARD>
+    <BAD_STANDARD>Rootkit이 존재하고 있을 경우(infected)</BAD_STANDARD>
+    <EVALUATOR>suspicious_count</EVALUATOR>
+    <MANUAL key="rootkit_result_exists" operator="equals" expected="false" reason="chkrootkit 결과 파일이 없어 수동점검 필요" />
+    <RULE key="rootkit_suspicious_count" operator="equals" expected="0" />
+    <GOOD_REASON>Rootkit이 존재하지 않을 경우(Not infected)</GOOD_REASON>
+    <BAD_REASON>Rootkit이 존재하고 있을 경우(infected)</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-098">
+    <NAME>BPFdoor(cBPFdoor/eBPFdoor) 및 Raw Socket 악용 여부 점검</NAME>
+    <GROUP>침해사고 흔적</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>의심스러운 RAW 소켓 프로세스 및 BPF 필터가 발견되지 않아 양호함</GOOD_STANDARD>
+    <BAD_STANDARD>의심스러운 RAW 소켓 프로세스 및 BPF 필터가 발견됨(수동 분석 필요)</BAD_STANDARD>
+    <EVALUATOR>manual</EVALUATOR>
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>의심스러운 RAW 소켓 프로세스 및 BPF 필터가 발견되지 않아 양호함</GOOD_REASON>
+    <BAD_REASON>의심스러운 RAW 소켓 프로세스 및 BPF 필터가 발견됨(수동 분석 필요)</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-099">
+    <NAME>WebShell 점검</NAME>
+    <GROUP>침해사고 흔적</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>악의적인 Webshell이 존재하지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>악의적인 Webshell이 존재하는 경우</BAD_STANDARD>
+    <EVALUATOR>suspicious_count</EVALUATOR>
+    <MANUAL key="webshell_result_exists" operator="equals" expected="false" reason="WebShell 스캔 결과 파일이 없어 수동점검 필요" />
+    <RULE key="webshell_suspicious_count" operator="equals" expected="0" />
+    <GOOD_REASON>악의적인 Webshell이 존재하지 않을 경우</GOOD_REASON>
+    <BAD_REASON>악의적인 Webshell이 존재하는 경우</BAD_REASON>
+  </ITEM>
+  <ITEM code="U-100">
+    <NAME>Hosts 파일 변조</NAME>
+    <GROUP>침해사고 흔적</GROUP>
+    <GRADE>H</GRADE>
+    <GOOD_STANDARD>알 수 없는 IP와 호스트네임이 매핑되어 있지 않을 경우</GOOD_STANDARD>
+    <BAD_STANDARD>알 수 없는 IP와 호스트네임이 매핑되어 있을 경우</BAD_STANDARD>
+    <EVALUATOR>manual</EVALUATOR>
+    <MANUAL_ALWAYS reason="현재 수집 증적만으로 결정론적 자동 판정이 어려워 수동점검 필요" />
+    <GOOD_REASON>알 수 없는 IP와 호스트네임이 매핑되어 있지 않을 경우</GOOD_REASON>
+    <BAD_REASON>알 수 없는 IP와 호스트네임이 매핑되어 있을 경우</BAD_REASON>
+  </ITEM>
+</CRITERIA>
