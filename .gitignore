@@ -2,7 +2,6 @@ compare/
 venv/
 .git
 @old/
-*result.xml
 *result.txt
 *evidence.*
 with_AI/*result.*
