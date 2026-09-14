@@ -1,0 +1,67 @@
+{
+  "U-001": {
+    "title": "root 계정 원격접속 제한",
+    "code": "U-001",
+    "description": "root 계정의 직접적인 원격 로그인을 제한하여 관리자 계정 탈취 위험을 감소시킨다.",
+    "good_criteria": [
+      "SSH 서비스가 비활성화되어 있는 경우",
+      "SSH 서비스 사용 시 PermitRootLogin이 no로 설정된 경우",
+      "Telnet 등 원격 서비스에서 root 직접 로그인이 제한된 경우"
+    ],
+    "vulnerable_criteria": [
+      "PermitRootLogin yes",
+      "root 계정의 직접적인 원격 로그인이 허용된 경우"
+    ],
+    "check_points": [
+      "/etc/ssh/sshd_config",
+      "PermitRootLogin",
+      "sshd 실행 여부"
+    ],
+    "reference": [
+      "주요정보통신기반시설 기술적 취약점 분석·평가 방법 상세가이드"
+    ]
+  },
+
+  "U-002": {
+    "title": "패스워드 복잡성 설정",
+    "code": "U-002",
+    "description": "사용자 패스워드에 적절한 복잡성을 적용하여 패스워드 추측 및 크래킹 공격 가능성을 낮춘다.",
+    "good_criteria": [
+      "영문, 숫자, 특수문자 등 패스워드 복잡성 정책이 설정된 경우",
+      "pam_pwquality 또는 이에 준하는 패스워드 복잡성 모듈이 적절히 설정된 경우"
+    ],
+    "vulnerable_criteria": [
+      "패스워드 복잡성 정책이 설정되지 않은 경우"
+    ],
+    "check_points": [
+      "/etc/security/pwquality.conf",
+      "/etc/pam.d/system-auth",
+      "/etc/pam.d/common-password"
+    ],
+    "reference": [
+      "주요정보통신기반시설 기술적 취약점 분석·평가 방법 상세가이드"
+    ]
+  },
+
+  "U-003": {
+    "title": "계정 잠금 임계값 설정",
+    "code": "U-003",
+    "description": "반복적인 로그인 실패 시 계정을 잠금 처리하여 무차별 대입 공격을 방지한다.",
+    "good_criteria": [
+      "로그인 실패 임계값이 설정되어 있는 경우",
+      "pam_faillock 또는 pam_tally 계열의 잠금 정책이 적용된 경우"
+    ],
+    "vulnerable_criteria": [
+      "계정 잠금 정책이 존재하지 않는 경우",
+      "로그인 실패 횟수 제한이 설정되지 않은 경우"
+    ],
+    "check_points": [
+      "pam_faillock",
+      "pam_tally",
+      "deny"
+    ],
+    "reference": [
+      "주요정보통신기반시설 기술적 취약점 분석·평가 방법 상세가이드"
+    ]
+  }
+}
